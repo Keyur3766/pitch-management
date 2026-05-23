@@ -1,0 +1,65 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+model User { 
+  id    Int     @id @default(autoincrement()) 
+  email String  @unique
+  name  String
+  password String
+  created_at DateTime @default(now())
+  bookings Booking[]
+} 
+
+model Pitch {
+  id Int @id @default(autoincrement())
+  name String
+  location String
+  price_per_hour Decimal
+  slots Slot[]
+
+  booking Booking[]
+}
+
+model Slot {
+  id Int @id  @default(autoincrement())
+  pitch Pitch @relation(fields: [pitchId], references: [id]) 
+  pitchId Int
+  start_time DateTime
+  end_time DateTime
+  status String
+  booking Booking? 
+}
+
+model Booking {
+  id Int @id @default(autoincrement())
+  userId Int
+  pitchId Int
+  slotId Int @unique
+  user User @relation(fields: [userId], references: [id]) 
+  pitch Pitch @relation(fields: [pitchId], references: [id]) 
+  slot Slot @relation(fields: [slotId], references: [id]) 
+  booking_date DateTime
+  status String
+  created_at DateTime
+}
+
+enum BookingStatus {
+  BOOKING_IN_PROGRESS
+  BOOKED
+}
+
+enum SlotStatus {
+  AVAILABLE
+  NOT_AVAILABLE
+}
