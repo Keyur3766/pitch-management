@@ -4,6 +4,7 @@ import express from "express"
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import loginRoutes from "./routes/login.routes.js";
+import bookingRoutes from "./routes/booking.routes.js";
 
 
 dotenv.config({
@@ -20,6 +21,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use("/api/login/", loginRoutes);
+app.use("/api/booking/", bookingRoutes);
 
 
 

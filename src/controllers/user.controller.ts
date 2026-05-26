@@ -76,7 +76,7 @@ const loginAndGenerateToken = async (req: any, res: any) => {
     }
 
     if (user) {
-      const token = jwt.sign({ sub: user.id, username: user.name }, secret, {
+      const token = jwt.sign({ sub: user.id, username: user.name, email: user.email }, secret, {
         expiresIn: "1h",
       });
 
