@@ -8,7 +8,6 @@ import { redisClient } from "../lib/redis.js";
 const reserverBooking = async(req: Request, res: Response) => {
     try {
         const userId: number = Number(req.user?.id);
-
         const {
             date,
             pitchId,
@@ -31,11 +30,14 @@ const reserverBooking = async(req: Request, res: Response) => {
         );
 
         if (!lock) {
-            return res.status(400).json({
-                success: false,
-                message:
+            return res.status(400).json(
+                new ApiResponse(
+                    201,
+                    null,
                     "Slot is currently reserved by another user"
-            });
+                )
+            );
+
         }
 
         let slot = await prisma.slot.findFirst({
@@ -85,10 +87,11 @@ const reserverBooking = async(req: Request, res: Response) => {
             // release redis lock
             await redisClient.del(lockKey);
 
-            return res.status(400).json({
-                success: false,
-                message: "Slot already booked"
-            });
+            return res.status(400).json(new ApiResponse(
+                400,
+                null,
+                "Slot already booked"
+            ));
         }
 
         
@@ -207,8 +210,6 @@ const confirmBooking = async (
         });
 
     } catch (error) {
-        console.log(error);
-
         return res.status(500).json({
             success: false,
             message: "Internal server error"
@@ -300,9 +301,7 @@ const getSlotsByPitchAndDate = async (
 
                 // ACTIVE TEMP RESERVATION
                 if (
-                    booking.status ===
-                    BookingStatus.BOOKING_IN_PROGRESS &&
-
+                    booking.status === BookingStatus.BOOKING_IN_PROGRESS &&
                     booking.expires_at &&
                     booking.expires_at > new Date()
                 ) {
@@ -312,7 +311,7 @@ const getSlotsByPitchAndDate = async (
                 return false;
             });
 
-            const isBooked = !!activeBooking;
+            const isBooked = activeBooking;
             
 
             return {

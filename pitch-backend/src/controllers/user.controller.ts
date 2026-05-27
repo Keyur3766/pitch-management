@@ -1,6 +1,7 @@
 
 
 import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import prisma from "../../db/prisma-client.js";
@@ -12,16 +13,13 @@ const registerUser = async (
 ): Promise<Response> => {
   try {
     const { name, email, password } = req.body;
-    console.warn(password);
-    // Check existing user
+    
     const existedUser = await prisma.user.findFirst({
       where: {
         OR: [{ name }, { email }],
       },
     });
 
-    
-    console.warn(existedUser);
     if (existedUser) {
       throw new ApiError(
         409,
@@ -29,14 +27,13 @@ const registerUser = async (
       );
     }
 
-    console.warn("reaching2")
-
+    const hashedPassword = await bcrypt.hash(password, 10)
     // Create user
     const user = await prisma.user.create({
       data: {
         name,
         email,
-        password: password,
+        password: hashedPassword,
       },
     });
 
@@ -66,13 +63,31 @@ const loginAndGenerateToken = async (req: any, res: any) => {
     const { name, password } = req.body;
     const user = await prisma.user.findFirst({
       where: {
-        AND: [{ name }, { password }]
+        name: name 
       }
     });
+
+    if (!user) {
+      return res.status(200).json({
+        message: "User not found",
+      });
+    }
+
     const secret = process.env.SECRET_KEY;
 
     if (!secret) {
       throw new Error("SECRET_KEY is not defined");
+    }
+
+    const isPasswordCorrect = await bcrypt.compare(
+      password,
+      user.password
+    );
+
+    if (!isPasswordCorrect) {
+      return res.status(200).json({
+        message: "Invalid credentials",
+      });
     }
 
     if (user) {
