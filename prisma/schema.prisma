@@ -38,25 +38,27 @@ model Slot {
   start_time DateTime
   end_time DateTime
   status String
-  booking Booking?
+  booking Booking[]
 }
 
 model Booking {
   id Int @id @default(autoincrement())
   userId Int
   pitchId Int
-  slotId Int  @unique
+  slotId Int 
   user User @relation(fields: [userId], references: [id]) 
   pitch Pitch @relation(fields: [pitchId], references: [id]) 
   slot Slot @relation(fields: [slotId], references: [id]) 
   booking_date DateTime
   status BookingStatus
   created_at DateTime @default(now())
+  expires_at DateTime?
 }
 
 enum BookingStatus {
   BOOKING_IN_PROGRESS
   BOOKED
+  EXPIRED
 }
 
 enum SlotStatus {
