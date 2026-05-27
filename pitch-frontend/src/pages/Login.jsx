@@ -3,8 +3,8 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 function Login() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [name, setName] = useState('test')
+  const [password, setPassword] = useState('123456')
   const [error, setError] = useState('')
   const navigate = useNavigate()
   const { login } = useAuth()
@@ -13,15 +13,14 @@ function Login() {
     e.preventDefault()
     setError('')
 
-    if (!email || !password) {
+    if (!name || !password) {
       setError('Please fill in all fields')
       return
     }
 
     const userData = {
-      id: 1,
-      name: 'Test User',
-      email: email
+      name: name,
+      password: password
     }
     login(userData)
     navigate('/pitches')
@@ -50,16 +49,16 @@ function Login() {
           <div className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
+                Username
               </label>
               <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="name"
+                type="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 required
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                placeholder="Enter your email"
+                placeholder="Enter your username"
               />
             </div>
             <div>

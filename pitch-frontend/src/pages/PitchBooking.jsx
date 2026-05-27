@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useParams, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { requestHandler } from "../utils";
+import BookingServices from "../services/index";
+import toast from 'react-hot-toast';
 
 function PitchBooking() {
   const { id } = useParams()
@@ -9,32 +12,82 @@ function PitchBooking() {
   const { user, logout } = useAuth()
   const pitch = location.state?.pitch
 
-  const [selectedDate, setSelectedDate] = useState('2026-05-27')
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
   const [selectedSlot, setSelectedSlot] = useState(null)
+  const [slots, setSlots] = useState([]);
   const [reservationStarted, setReservationStarted] = useState(false)
   const [reservationTime, setReservationTime] = useState(0) 
-  const [bookedSlots, setBookedSlots] = useState([])
+  const [bookingId, setBookingId] = useState(0); 
+  
 
-  const generateSlots = () => {
-    const slots = []
+  const generateSlots = (apiSlots) => {
+    const slots = [];
+
     for (let hour = 6; hour < 18; hour++) {
-      const startHour = hour
-      const endHour = hour + 1
+      const startHour = hour;
+      const endHour = hour + 1;
+
+      const matchedSlot = apiSlots.find((slot) => {
+        const apiHour = new Date(slot.startTime).getHours();
+        return apiHour === hour;
+      });
+
+      // Generate timestamps for this slot
+      const startDate = new Date(selectedDate);
+      startDate.setHours(startHour, 0, 0, 0);
+
+      const endDate = new Date(selectedDate);
+      endDate.setHours(endHour, 0, 0, 0);
+
       slots.push({
         id: `${hour}`,
-        time: `${startHour.toString().padStart(2, '0')}:00 – ${endHour.toString().padStart(2, '0')}:00`,
-        start: hour
-      })
+        time: `${startHour.toString().padStart(2, "0")}:00 – ${endHour
+          .toString()
+          .padStart(2, "0")}:00`,
+        start: hour,
+        available: matchedSlot?.available ?? true,
+        startTimestamp: startDate.toISOString(),
+        endTimestamp: endDate.toISOString(),
+      });
     }
-    return slots
-  }
 
-  const slots = generateSlots()
+    return slots;
+  };
+
+  const fetchSlots = async () => {
+      await requestHandler(
+        async () => await BookingServices.getSlotByPitchId(id, selectedDate),
+        null,
+        (res) => {
+          const slots = generateSlots(res.data);
+          setSlots(slots);
+        },
+        (error) => {
+          console.error(error);
+        }
+      );
+  };
+  
+
+  const reserveSlot = async () => {    
+    const reserveSlotParams = {
+      pitchId: id,
+      date: new Date(),
+      starttimeStamp: selectedSlot.startTimestamp,
+      endTimestamp: selectedSlot.endTimestamp,
+    };
+
+    const res = await BookingServices.reserveBooking(reserveSlotParams);
+    setBookingId(res.data.data.id);
+    fetchSlots();
+  };  
+
 
   useEffect(() => {
-    const mockBooked = [7, 8, 12]
-    setBookedSlots(mockBooked)
-  }, [])
+    fetchSlots();
+  }, [selectedDate])
 
   // Countdown timer for reservation
   useEffect(() => {
@@ -56,19 +109,27 @@ function PitchBooking() {
   }, [reservationStarted, reservationTime]);
 
   const handleSlotSelect = (slot) => {
-    if (bookedSlots.includes(parseInt(slot.id))) {
+    if (!slots.filter(s => s.id == slot.id)[0].available) {
       return
     }
     setSelectedSlot(slot)
   }
 
-  const handleConfirmBooking = () => {
+  const handleConfirmBooking = async() => {
     // Reset reservation state after confirming
     setReservationStarted(false);
     setReservationTime(0);
+    
+    
+
+    if (!bookingId || bookingId == 0) {
+      toast.error("something went wrong.")
+    }
+
+    await BookingServices.confirmBooking(bookingId);
+    fetchSlots();
     if (!selectedSlot) return
-    alert(`Booking confirmed for ${pitch?.name}\nDate: ${selectedDate}\nSlot: ${selectedSlot.time}`)
-    navigate('/pitches')
+    toast.success(`Booking confirmed for ${pitch?.name}\nDate: ${selectedDate}\nSlot: ${selectedSlot.time}`)    
   }
 
   if (!pitch) {
@@ -126,7 +187,7 @@ function PitchBooking() {
           <input
             type="date"
             value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
+            onChange={(e) => { setSelectedDate(e.target.value); }}
             className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
           />
         </div>
@@ -136,7 +197,7 @@ function PitchBooking() {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Available Slots</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {slots.map((slot) => {
-              const isBooked = bookedSlots.includes(parseInt(slot.id))
+              const isBooked = !slot.available;
               const isSelected = selectedSlot?.id === slot.id
               return (
                 <div
@@ -166,8 +227,9 @@ function PitchBooking() {
             <div className="mt-6 pt-6 border-t border-gray-200">
               <button
                 onClick={() => {
+                  reserveSlot();
                   setReservationStarted(true);
-                  setReservationTime(10);
+                  setReservationTime(120);
                 }}
                 className="w-full bg-green-600 text-white py-3 px-4 rounded-md hover:bg-green-700 transition font-semibold"
               >

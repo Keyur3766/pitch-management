@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 function Register() {
@@ -7,10 +7,10 @@ function Register() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const navigate = useNavigate()
-  const { login } = useAuth()
+  
+  const { register } = useAuth()
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
 
@@ -25,13 +25,16 @@ function Register() {
     }
 
     const userData = {
-      id: 1,
       name: name,
-      email: email
-    }
-    login(userData)
-    navigate('/pitches')
+      email: email,
+      password: password,
+    };
+
+    await register(userData);
+    // login(userData) 
   }
+
+
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
