@@ -1,6 +1,6 @@
 import axios from "axios";
 import { Pitch, APISuccessResponseInterface } from '../interface/api';
-const api_base_url = "http://127.0.0.1:3000";
+const api_base_url = import.meta.env.VITE_API_URL;;
 
 const apiClient = axios.create({
   baseURL: api_base_url,

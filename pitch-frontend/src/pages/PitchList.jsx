@@ -114,8 +114,8 @@ function PitchList() {
         <h2 className="text-2xl font-bold text-gray-900 mb-6">
           Available Pitches
         </h2>
-        <div class="relative flex flex-col w-full h-full overflow-scroll bg-gray-100 rounded-lg bg-clip-border">
-          <table class="w-full text-left table-auto min-w-max text-slate-800">
+        <div className="relative flex flex-col w-full h-full overflow-scroll bg-gray-100 rounded-lg bg-clip-border">
+          <table className="w-full text-left table-auto min-w-max text-slate-800">
             <thead>
               <tr className="text-slate-500 border-b border-slate-300 bg-slate-50">
                 <th className="p-4">

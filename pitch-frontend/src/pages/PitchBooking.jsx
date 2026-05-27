@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { requestHandler } from "../utils";
 import BookingServices from "../services/index";
 import toast from 'react-hot-toast';
+import { useSocket } from "../context/SocketContext";
 
 function PitchBooking() {
   const { id } = useParams()
@@ -20,7 +21,7 @@ function PitchBooking() {
   const [reservationStarted, setReservationStarted] = useState(false)
   const [reservationTime, setReservationTime] = useState(0) 
   const [bookingId, setBookingId] = useState(0); 
-  
+  const [isConnected, setConnected] = useState(false); 
 
   const generateSlots = (apiSlots) => {
     const slots = [];
@@ -69,6 +70,64 @@ function PitchBooking() {
         }
       );
   };
+  const OnConnect = () => {
+    console.log(isConnected);
+    setConnected(true);
+  };
+  const OnDisconnect = () => {
+    setConnected(false);  
+  };
+
+  const onSlotBooked = (data) => {
+    
+    const selected = new Date(selectedDate);
+
+    const bookingStart = new Date(data.slot.start_time);
+
+    // Check if booking belongs to selected date
+    const isSameDate =
+      bookingStart.getFullYear() === selected.getFullYear() &&
+      bookingStart.getMonth() === selected.getMonth() &&
+      bookingStart.getDate() === selected.getDate();
+    
+    if (!isSameDate) {
+      return;
+    }
+
+    // Extract booked hour
+    const bookedHour = bookingStart.getHours();
+    
+    setSlots((prevSlots) =>
+      prevSlots.map((slot) => {
+        if (Number(slot.id) === Number(bookedHour)) {
+          return {
+            ...slot,
+            available: false,
+          };
+        }
+
+        return slot;
+      })
+    );
+    
+  };
+  const { socket } = useSocket();
+  const CONNECTED_EVENT = "connected";
+  const DISCONNECT_EVENT = "disconnect";
+  const SLOT_BOOKED_EVENT = "slotBooked";
+  useEffect(() => {
+    if (!socket) return;
+    socket.on(CONNECTED_EVENT, OnConnect);
+    socket.on(DISCONNECT_EVENT, OnDisconnect);
+    socket.on(SLOT_BOOKED_EVENT, onSlotBooked);
+
+    return () => {
+      socket.off(CONNECTED_EVENT, OnConnect);
+      socket.off(DISCONNECT_EVENT, OnDisconnect);
+    };
+  }, [socket, selectedDate]);
+
+  
   
 
   const reserveSlot = async () => {    
