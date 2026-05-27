@@ -5,6 +5,9 @@ import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import loginRoutes from "./routes/login.routes.js";
 import bookingRoutes from "./routes/booking.routes.js";
+import { createServer } from "http";
+import { Server } from "socket.io";
+import { initializeSocketIO } from "./socket/index.js";
 
 
 dotenv.config({
@@ -12,28 +15,45 @@ dotenv.config({
 });
 const app = express();
 
-app.use(
-    cors({
-        origin: process.env.FRONTEND_URL,
-        credentials: true,
-    })
-);
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+const startServer = () => {
+    // set port, listen for requests
+    const PORT = process.env.PORT || 3000;;
 
-app.use("/api/login/", loginRoutes);
-app.use("/api/booking/", bookingRoutes);
+    const httpServer = createServer(app);
+    const io = new Server(httpServer, {
+        pingTimeout: 60000,
+        cors: {
+            origin: process.env.FRONTEND_URL,
+            credentials: true,
+        },
+    });
+
+    httpServer.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+    });
+
+    app.use(
+        cors({
+            origin: process.env.FRONTEND_URL,
+            credentials: true,
+        })
+    );
+
+    app.use(express.json());
+    app.use(express.urlencoded({ extended: true }));
+    app.use(cookieParser());
+    app.use(bodyParser.json());
+    app.use(bodyParser.urlencoded({ extended: true }));
+
+    app.use("/api/login/", loginRoutes);
+    app.use("/api/booking/", bookingRoutes);
+
+    app.set("io", io);
+
+    initializeSocketIO(io);
+}
 
 
-
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
-
+startServer();
 

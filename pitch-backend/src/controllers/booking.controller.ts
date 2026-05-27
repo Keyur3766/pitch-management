@@ -3,7 +3,10 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import prisma from "../../db/prisma-client.js";
 import { BookingStatus, SlotStatus } from "@prisma/client";
 import { redisClient } from "../lib/redis.js";
-
+import type { ParamsDictionary } from 'express-serve-static-core';
+import type { ParsedQs } from 'qs';
+import { EventEnum } from '../utils/enums.js';
+import { emitSocketIOEvent } from '../socket/index.js'
 
 const reserverBooking = async(req: Request, res: Response) => {
     try {
@@ -203,6 +206,9 @@ const confirmBooking = async (
             }
         });
 
+        /* update/broadcast message to connected socket users */
+        emitSocketIOEvent(req, EventEnum.SLOT_BOOKED_EVENT, updatedBooking);
+
         return res.status(200).json({
             success: true,
             message: "Booking confirmed successfully",
@@ -345,7 +351,7 @@ const getMyBookings = async (
 
     try {
         const userId = Number(req.user?.id)
-
+        
         const bookings = await prisma.booking.findMany({
             where: {
                 userId,
@@ -382,8 +388,6 @@ const getMyBookings = async (
 
         const formattedBookings =
             bookings.filter((booking) => {
-
-                // REMOVE EXPIRED TEMP BOOKINGS
                 if (
                     booking.status ===
                     BookingStatus.BOOKING_IN_PROGRESS &&
@@ -449,3 +453,4 @@ export {
     getSlotsByPitchAndDate,
     getMyBookings
 }
+
