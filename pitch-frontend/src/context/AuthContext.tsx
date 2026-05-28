@@ -36,20 +36,30 @@ export const AuthProvider = ({ children }: any) => {
         await Userservices.GenerateLoginToken(data.name, data.password),
       null,
       (res: any) => {
-        setUser(res.data);
-        setIsAuthenticated(true);
-        setToken(res.data.token);
-        localStorage.setItem("user", JSON.stringify(res.data));
-        localStorage.setItem("isAuthenticated", "true");
-        localStorage.setItem("token", res.data.token);
-        toast.success("Login successful");
+        if (
+          res.message === "Invalid credentials" ||
+          res.message === "User not found"
+        ) {
+          toast.error(res.message);
+          navigate("/login");
+        } else {
+          console.warn("reaching...");
+          setUser(res.data);
+          setIsAuthenticated(true);
+          setToken(res.data.token);
+          localStorage.setItem("user", JSON.stringify(res.data));
+          localStorage.setItem("isAuthenticated", "true");
+          localStorage.setItem("token", res.data.token);
+          toast.success("Login successful");
 
-        navigate("/pitches");
+          navigate("/pitches");
+        }
+        
       },
       (error: any) => {
         console.warn(error);
-        navigate("/login");
-        toast.error(error?.message || "Invalid credentials");
+        // navigate("/login");
+        // toast.error(error?.message || "Invalid credentials");
       } 
     );
     

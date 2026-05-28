@@ -112,7 +112,7 @@ function PitchList() {
 
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-6">
-          Available Pitches
+          My Bookings
         </h2>
         <div className="relative flex flex-col w-full h-full overflow-scroll bg-gray-100 rounded-lg bg-clip-border">
           <table className="w-full text-left table-auto min-w-max text-slate-800">

@@ -12,12 +12,13 @@ export const requestHandler = async (
   try {
     
     const response = await api();
+    
     const { data } = response;
     if (data?.success) {
       onSuccess(data);
     }
   } catch (error: any) {
-      console.warn(error);
+      console.error(error);
     if ([401, 403].includes(error?.response?.status)) {
       localStorage.clear(); 
       window.location.href = "/login"; 

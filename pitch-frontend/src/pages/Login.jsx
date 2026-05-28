@@ -3,8 +3,8 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 function Login() {
-  const [name, setName] = useState('test')
-  const [password, setPassword] = useState('123456')
+  const [name, setName] = useState('')
+  const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const navigate = useNavigate()
   const { login } = useAuth()
@@ -23,7 +23,6 @@ function Login() {
       password: password
     }
     login(userData)
-    navigate('/pitches')
   }
 
   return (

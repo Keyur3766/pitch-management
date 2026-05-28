@@ -139,8 +139,14 @@ function PitchBooking() {
     };
 
     const res = await BookingServices.reserveBooking(reserveSlotParams);
+    if (res.data?.statusCode === 202) {
+      toast.error(res.data?.message);
+      return;
+    }
     setBookingId(res.data.data.id);
     fetchSlots();
+    setReservationStarted(true);
+    setReservationTime(120);
   };  
 
 
@@ -287,8 +293,6 @@ function PitchBooking() {
               <button
                 onClick={() => {
                   reserveSlot();
-                  setReservationStarted(true);
-                  setReservationTime(120);
                 }}
                 className="w-full bg-green-600 text-white py-3 px-4 rounded-md hover:bg-green-700 transition font-semibold"
               >
