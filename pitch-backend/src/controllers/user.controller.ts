@@ -68,9 +68,9 @@ const loginAndGenerateToken = async (req: any, res: any) => {
     });
 
     if (!user) {
-      return res.status(200).json({
-        message: "User not found",
-      });
+      return res.status(200).json(new ApiResponse(200, {
+        message: "Invalid credentials"
+      }, "User not found"));
     }
 
     const secret = process.env.SECRET_KEY;
@@ -85,9 +85,9 @@ const loginAndGenerateToken = async (req: any, res: any) => {
     );
 
     if (!isPasswordCorrect) {
-      return res.status(200).json({
-        message: "Invalid credentials",
-      });
+      return res.status(200).json(new ApiResponse(200, {
+        message: "Invalid credentials"
+      }, "Invalid credentials"));
     }
 
     if (user) {

@@ -33,9 +33,9 @@ const reserverBooking = async(req: Request, res: Response) => {
         );
 
         if (!lock) {
-            return res.status(400).json(
+            return res.status(202).json(
                 new ApiResponse(
-                    201,
+                    202,
                     null,
                     "Slot is currently reserved by another user"
                 )
@@ -351,10 +351,10 @@ const getMyBookings = async (
 
     try {
         const userId = Number(req.user?.id)
-        
+
         const bookings = await prisma.booking.findMany({
             where: {
-                userId,
+                userId: userId,
 
                 NOT: {
                     status: BookingStatus.EXPIRED,
