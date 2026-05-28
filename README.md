@@ -6,6 +6,9 @@ Cricket Pitch Management System allows users to book available cricket pitch slo
 
 ---
 
+# Architecture Diagram
+![App Screenshot](./pitch-frontend/public/architecture.png)
+
 # Project Structure
 
 There are two separate repositories:
