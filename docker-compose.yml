@@ -1,0 +1,42 @@
+version: '1.0'
+services:
+  frontend: 
+    build:
+      context: ./pitch-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    env_file:
+      - ./pitch-frontend/.env
+
+  backend:
+    build:
+      context: ./pitch-backend
+    ports:
+     - "3000:3000"
+    env_file:
+      - ./pitch-backend/.env
+    depends_on:
+      - redis
+      - postgres
+    
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: keyurnagar
+      POSTGRES_PASSWORD: 3766
+      POSTGRES_DB: pitch
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
+  
